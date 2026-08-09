@@ -1,7 +1,7 @@
 \documentclass{cumcmthesis}
 % \documentclass[withoutpreface,bwprint]{cumcmthesis} %去掉封面与编号页，电子版提交的时候使用。
 
-
+\usepackage{ctex}      % 中文支持
 \usepackage[framemethod=TikZ]{mdframed}
 \usepackage{url}   % 网页链接
 \usepackage{subcaption} % 子标题
@@ -20,92 +20,58 @@
 \begin{document}
 
  \maketitle
+
  \begin{abstract}
 摘要内容
-\begin{mdframed} [%
-	roundcorner=5pt,
-	linecolor=gray!50,
-	outerlinewidth=0.5pt,
-	middlelinewidth=0.3pt, backgroundcolor=gray!2,
-innertopmargin=\topskip, frametitle={2023 年建模比赛格式变化说明},
-frametitlefont= \bfseries,frametitlerule=true,frametitlealignment =\raggedright\noindent,
-frametitlerulewidth=.5pt, frametitlebackgroundcolor=gray!2,]
-今年的格式变化主要就是三个地方，如下：
 
-\end{mdframed}
-
-\uwave{关注我们的微信公众号}：
-
-\centerline{\includegraphics[width=6cm]{gongzhonghao2}}
-
-\keywords{\TeX{}\quad  图片\quad   表格\quad  公式}
+\keywords{  关键词1\quad   关键词2\quad  关键词3}
 \end{abstract}
 
 %目录  2019 明确不要目录，我觉得这个规定太好了
 %\tableofcontents
 
-%\newpage
 
-\section{模板的基本使用}
+\section{第一部分}
 
-要使用 \LaTeX{} 来完成建模论文，首先要确保正确安装一个 \LaTeX{} 的发行版本。
-
-\begin{itemize}
-    \item Mac 下可以使用 Mac\TeX{}
-    \item Linux 下可以使用 \TeX{}Live ；
-    \item windows 下可以使用 \TeX{}Live 或者 Mik\TeX{} ;
-\end{itemize}
-
-具体安装可以参考 \href{https://github.com/OsbertWang/install-latex-guide-zh-cn/releases/}{Install-LaTeX-Guide-zh-cn} 或者其它靠谱的文章。另外可以安装一个易用的编辑器，例如 \href{https://mirrors.tuna.tsinghua.edu.cn/github-release/texstudio-org/texstudio/LatestRelease/}{\TeX{}studio} 。
-
-使用该模板前，请阅读模板的使用说明文档。下面给出模板使用的大概样式。
-
-\begin{tcode}
-    \documentclass{cumcmthesis}
-    %\documentclass[withoutpreface,bwprint]{cumcmthesis} %去掉封面与编号页
-
-    \title{论文题目}
-    \tihao{A}            % 题号
-    \baominghao{4321}    % 报名号
-    \schoolname{你的大学}
-    \membera{成员A}
-    \memberb{成员B}
-    \memberc{成员C}
-    \supervisor{指导老师}
-    \yearinput{2017}     % 年
-    \monthinput{08}      % 月
-    \dayinput{22}        % 日
-
-    \begin{document}
-        \maketitle
-        \begin{abstract}
-            摘要的具体内容。
-            \keywords{关键词1\quad  关键词2\quad   关键词3}
-        \end{abstract}
-        \tableofcontents
-        \section{问题重述}
-        \subsection{问题的提出}
-        \section{模型的假设}
-        \section{符号说明}
-        \begin{center}
-            \begin{tabular}{cc}
-                \hline
-                \makebox[0.3\textwidth][c]{符号}	&  \makebox[0.4\textwidth][c]{意义} \\ \hline
-                D	    & 木条宽度（cm） \\ \hline
-            \end{tabular}
-        \end{center}
-        \section{问题分析}
-        \section{总结}
-        \begin{thebibliography}{9}%宽度9
-            \bibitem{bib:one} ....
-        \end{thebibliography}
-        \begin{appendices}
-            附录的内容。
-        \end{appendices}
-    \end{document}
-\end{tcode}
 \section{问题重述}
-        \subsection{问题的提出}
+
+古代玻璃是丝绸之路文化交流的重要物证。我国古代玻璃在吸收外来技术后，利用本土原料制作，形成两类主要品种：\textbf{高钾玻璃}（以草木灰等含钾物质为助熔剂）和\textbf{铅钡玻璃}（以铅矿石为助熔剂，富含PbO和BaO）。然而，长期埋藏导致玻璃表面风化，内部元素与环境发生交换，使实测化学成分偏离原始组成，影响类别判别。
+
+附件数据包括58件已分类文物的基本信息（类型、纹饰、颜色、风化状态）及其14种主要氧化物的质量分数（表单1、2），另有8件未知类别文物的成分数据（表单3）。数据具有成分性（总和为100\%），有效样本的总和介于85\%～105\%之间。
+
+基于上述数据，需解决以下问题：
+
+\begin{enumerate}
+    \item \textbf{风化关联分析与成分预测}
+    \begin{itemize}
+        \item 探究风化与玻璃类型、纹饰、颜色之间的关联性；
+        \item 对高钾和铅钡两类玻璃，分别统计风化与未风化样品的成分规律；
+        \item 建立预测模型，根据风化点数据估算其风化前的化学成分。
+    \end{itemize}
+
+    \item \textbf{分类规律与亚类划分}
+    \begin{itemize}
+        \item 挖掘两类玻璃在化学成分上的判别规则；
+        \item 对每类玻璃进一步划分亚类，给出具体划分方法和结果；
+        \item 验证亚类划分的合理性与敏感性。
+    \end{itemize}
+
+    \item \textbf{未知样品的类型鉴别}
+    \begin{itemize}
+        \item 利用已有分类模型对表单3中的未知文物进行类别判定；
+        \item 分析分类结果对数据扰动或阈值变化的敏感性。
+    \end{itemize}
+
+    \item \textbf{成分关联关系及类别比较}
+    \begin{itemize}
+        \item 分别分析两类玻璃内部各化学成分间的相关关系；
+        \item 比较两类玻璃在成分关联模式上的差异，探讨工艺配方的影响。
+    \end{itemize}
+\end{enumerate}
+
+本题旨在通过统计建模与数据分析，为古代玻璃的溯源、分类和保护提供定量科学依据。
+
+
 \section{模型的假设}
 \section{符号说明}
 根据要求，电子版论文提交时需去掉封面和编号页。可以加上 \verb|withoutpreface|  选项来实现，即：
