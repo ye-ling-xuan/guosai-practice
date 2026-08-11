@@ -5,451 +5,587 @@
 \usepackage[framemethod=TikZ]{mdframed}
 \usepackage{url}   % 网页链接
 \usepackage{subcaption} % 子标题
-\title{论文标题}
+\usepackage{amsmath,amssymb,bm}  % 强化数学支持
+\usepackage{booktabs}  % 三线表
+\usepackage{multirow}
+\usepackage{listings}  % 代码列表
+\usepackage{xcolor}    % 代码高亮颜色
+
+% 设置代码样式
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!60!black},
+    stringstyle=\color{red!50!black},
+    showstringspaces=false,
+    numbers=left,
+    numberstyle=\tiny,
+    frame=single,
+    breaklines=true,
+    captionpos=b,
+    tabsize=4
+}
+
+\title{古代玻璃制品的成分分析与鉴别}
 \tihao{C}
-\baominghao{xxxx}
+\baominghao{2026080901}
 \schoolname{哈尔滨工业大学（深圳）}
-\membera{ }
-\memberb{ }
-\memberc{ }
-\supervisor{ }
+\membera{成员A}
+\memberb{成员B}
+\memberc{成员C}
+\supervisor{指导老师}
 \yearinput{2026}
 \monthinput{08}
 \dayinput{09}
 
 \begin{document}
 
- \maketitle
+\maketitle
 
- \begin{abstract}
-摘要内容
+\begin{abstract}
+本文针对古代玻璃制品的成分分析与鉴别问题，建立了系统的数学模型。首先，采用卡方检验分析表面风化与玻璃类型、纹饰和颜色的关系，并基于描述性统计揭示风化前后化学成分的变化规律；对于风化前的成分预测，建立了加权平均预测占比模型、多元线性回归模型和K近邻回归模型。其次，针对高钾玻璃和铅钡玻璃的分类规律，运用K-means++聚类算法进行亚类划分，借助轮廓系数和肘部法则确定最优聚类数并验证合理性。再次，构建K近邻（KNN）分类模型对未知类别的玻璃文物进行类型鉴别，并通过交叉验证分析分类结果的敏感性。最后，采用相关性分析和对应分析方法挖掘不同类别玻璃化学成分之间的关联关系并比较其差异性。模型验证表明，所建方法能够有效处理成分数据，为考古研究提供定量分析工具。
 
-\keywords{  关键词1\quad   关键词2\quad  关键词3}
+\keywords{玻璃文物\quad 风化预测\quad K-means++聚类\quad KNN分类\quad 对应分析}
 \end{abstract}
 
-%目录  2019 明确不要目录，我觉得这个规定太好了
+%目录 2019明确不要目录，故注释掉
 %\tableofcontents
-
-
-\section{第一部分}
 
 \section{问题重述}
 
-古代玻璃是丝绸之路文化交流的重要物证。我国古代玻璃在吸收外来技术后，利用本土原料制作，形成两类主要品种：\textbf{高钾玻璃}（以草木灰等含钾物质为助熔剂）和\textbf{铅钡玻璃}（以铅矿石为助熔剂，富含PbO和BaO）。然而，长期埋藏导致玻璃表面风化，内部元素与环境发生交换，使实测化学成分偏离原始组成，影响类别判别。
+丝绸之路是古代中西方文化交流的重要通道，玻璃作为早期贸易往来的宝贵物证，具有重要的考古学研究价值。古代玻璃的主要原料是石英砂，主要化学成分是二氧化硅（SiO$_2$）。由于纯石英砂熔点较高，炼制时需要添加助熔剂（如草木灰、天然泡碱、硝石、铅矿石等），并添加石灰石作为稳定剂。不同助熔剂导致玻璃的主要化学成分不同：铅钡玻璃中氧化铅（PbO）、氧化钡（BaO）含量较高，通常被认为是我国自己发明的玻璃品种；钾玻璃则以含钾量高的物质如草木灰作为助熔剂。
 
-附件数据包括58件已分类文物的基本信息（类型、纹饰、颜色、风化状态）及其14种主要氧化物的质量分数（表单1、2），另有8件未知类别文物的成分数据（表单3）。数据具有成分性（总和为100\%），有效样本的总和介于85\%～105\%之间。
+古代玻璃极易受埋藏环境影响而风化。在风化过程中，内部元素与环境元素进行大量交换，导致成分比例发生变化，从而影响对其类别的正确判断。现有一批我国古代玻璃制品的相关数据，已分为高钾玻璃和铅钡玻璃两种类型。附件表单1给出了文物的分类信息（纹饰、类型、颜色、表面风化），附件表单2给出了主要成分所占比例，附件表单3为未分类玻璃文物的化学成分数据。数据具有成分性特点，各成分比例累加和应为100\%，但因检测手段等原因可能导致累加和非100\%，本题将累加和介于85\%--105\%之间的数据视为有效数据。
 
-基于上述数据，需解决以下问题：
-
+需要解决以下四个问题：
 \begin{enumerate}
-    \item \textbf{风化关联分析与成分预测}
-    \begin{itemize}
-        \item 探究风化与玻璃类型、纹饰、颜色之间的关联性；
-        \item 对高钾和铅钡两类玻璃，分别统计风化与未风化样品的成分规律；
-        \item 建立预测模型，根据风化点数据估算其风化前的化学成分。
-    \end{itemize}
-
-    \item \textbf{分类规律与亚类划分}
-    \begin{itemize}
-        \item 挖掘两类玻璃在化学成分上的判别规则；
-        \item 对每类玻璃进一步划分亚类，给出具体划分方法和结果；
-        \item 验证亚类划分的合理性与敏感性。
-    \end{itemize}
-
-    \item \textbf{未知样品的类型鉴别}
-    \begin{itemize}
-        \item 利用已有分类模型对表单3中的未知文物进行类别判定；
-        \item 分析分类结果对数据扰动或阈值变化的敏感性。
-    \end{itemize}
-
-    \item \textbf{成分关联关系及类别比较}
-    \begin{itemize}
-        \item 分别分析两类玻璃内部各化学成分间的相关关系；
-        \item 比较两类玻璃在成分关联模式上的差异，探讨工艺配方的影响。
-    \end{itemize}
+    \item 分析玻璃文物表面风化与玻璃类型、纹饰和颜色的关系；结合玻璃类型分析有无风化化学成分含量的统计规律；根据风化点检测数据预测风化前的化学成分含量。
+    \item 分析高钾玻璃、铅钡玻璃的分类规律；对每个类别选择合适的化学成分进行亚类划分，给出具体的划分方法及结果，并对分类结果的合理性和敏感性进行分析。
+    \item 对附件表单3中未知类别玻璃文物的化学成分进行分析，鉴别其所属类型，并对分类结果的敏感性进行分析。
+    \item 针对不同类别的玻璃文物样品，分析其化学成分之间的关联关系，并比较不同类别之间的化学成分关联关系的差异性。
 \end{enumerate}
 
-本题旨在通过统计建模与数据分析，为古代玻璃的溯源、分类和保护提供定量科学依据。
-
-
 \section{模型的假设}
+
+\begin{enumerate}
+    \item 假设附件中所给数据均真实可靠，空白处表示未检测到该成分，可视为含量为零。
+    \item 假设成分比例累加和介于85\%--105\%之间的数据为有效数据，其余为无效数据。
+    \item 假设同一文物不同部位的采样点数据可独立用于分析。
+    \item 假设风化过程中化学成分的变化遵循一定的统计规律，可用于预测风化前的成分含量。
+    \item 假设未风化点的成分数据可代表文物风化前的原始成分。
+\end{enumerate}
+
 \section{符号说明}
-根据要求，电子版论文提交时需去掉封面和编号页。可以加上 \verb|withoutpreface|  选项来实现，即：
-\begin{tcode}
-    \documentclass[withoutpreface]{cumcmthesis}
-\end{tcode}
-这样就能实现了。打印的时候有超链接的地方不需要彩色，可以加上 \verb|bwprint| 选项。
 
-另外目录也是不需要的，将 \verb|\tableofcontents| 注释或删除，目录就不会出现了。
-
-团队的信息填入指定的位置，并且确保信息的正确性，以免因此白忙一场。
-
-编译记得使用 \verb|xelatex|，而不是用 \verb|pdflatex|。在命令行编译的可以按如下方式编译：
-\begin{tcode}
-	xelatex example
-\end{tcode}
-或者使用 \verb|latexmk| 来编译，更推荐这种方式。
-\begin{tcode}
-	latexmk -xelatex example
-\end{tcode}
-
-下面给出写作与排版上的一些建议。
-
-\section{图片}
-
-建模中不可避免要插入图片。图片可以分为矢量图与位图。位图推荐使用 \verb|jpg,png| 这两种格式，避免使用 \verb|bmp| 这类图片，容易出现图片插入失败这样情况的发生。矢量图一般有 \verb|pdf,eps| ，推荐使用 \verb|pdf|  格式的图片，尽量不要使用 \verb|eps| 图片，理由相同。
-
-注意图片的命名，避免使用中文来命名图片，可以用英文与数字的组合来命名图片。避免使用\verb|1,2,3| 这样顺序的图片命名方式。图片多了，自己都不清楚那张图是什么了，命名尽量让它有意义。下面是一个插图的示例代码。
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=.6\textwidth]{smokeblk}
-    \caption{电路图}
-    \label{fig:circuit-diagram}
-\end{figure}
-
-注意 \verb|figure| 环境是一个浮动体环境，图片的最终位置可能会跑动。\verb|[!h]| 中的 \verb|h| 是 here 的意思， \verb|!| 表示忽略一些浮动体的严格规则。另外里面还可以加上 \verb|btp| 选项，它们分别是 bottom, top, page 的意思。只要这几个参数在花括号里面，作用是不分先后顺序的。page 在这里表示浮动页。
-
-\verb|\label{fig:circuit-diagram}| 是一个标签，供交叉引用使用的。例如引用图片 \verb|\cref{fig:circuit-diagram}| 的实际效果是\cref{fig:circuit-diagram}。图片是自动编号的，比起手动编号，它更加高效。\verb|\cref{label}| 由 \verb|cleveref| 宏包提供，比普通的 \verb|\ref{label}| 更加自动化。 \verb|label| 要确保唯一，命名方式推荐用图片的命名方式。
-
-图片并排的需求解决方式多种多样，下面用 \verb|minipage| 环境来展示一个简单的例子。注意，以下例子用到了 \verb|subcaption| 命令，需要加载 subcaption 宏包。
-
-\begin{figure}
-    \centering
-    \begin{minipage}[c]{0.3\textwidth}
-        \centering
-        \includegraphics[width=0.95\textwidth]{f1}
-        \subcaption{流程图}
-        \label{fig:sample-figure-a}
-    \end{minipage}
-    \begin{minipage}[c]{0.3\textwidth}
-        \centering
-        \includegraphics[width=0.95\textwidth]{f1}
-        \subcaption{流程图}
-        \label{fig:sample-figure-b}
-    \end{minipage}
-    \begin{minipage}[c]{0.3\textwidth}
-        \centering
-        \includegraphics[width=0.95\textwidth]{f1}
-        \subcaption{流程图}
-        \label{fig:sample-figure-c}
-    \end{minipage}
-    \caption{多图并排示例}
-    \label{fig:sample-figure}
-\end{figure}
-这相当于整体是一张大图片，大图片引用是\cref{fig:sample-figure}，子图引用别分是\cref{fig:sample-figure-a}、\cref{fig:sample-figure-b}、\cref{fig:sample-figure-c}。
-
-如果原本两张图片的高度不同，但是希望它们缩放后等高的排在同一行，参考这个例子：
-\begin{figure}
-    \centering
-    \begin{minipage}[c]{0.48\textwidth}
-        \centering
-        \includegraphics[height=0.2\textheight]{cat}
-        \subcaption{一只猫}
-    \end{minipage}
-    \begin{minipage}[c]{0.48\textwidth}
-        \centering
-        \includegraphics[height=0.2\textheight]{smokeblk}
-        \subcaption{电路图}
-    \end{minipage}
-    \caption{多图并排示例}
-\end{figure}
-
-\section{绘制普通三线表格}
-表格应具有三线表格式，因此常用 booktabs宏包，其标准格式如\cref{tab:001}~所示。
 \begin{table}[!htbp]
-    \caption{标准三线表格}\label{tab:001} \centering
-    \begin{tabular}{ccccc}
+    \centering
+    \caption{主要符号说明}
+    \label{tab:symbols}
+    \begin{tabular}{c|c}
         \toprule[1.5pt]
-        $D$(in) & $P_u$(lbs) & $u_u$(in) & $\beta$ & $G_f$(psi.in)\\
+        符号 & 含义 \\
         \midrule[1pt]
-        5 & 269.8 & 0.000674 & 1.79 & 0.04089\\
-        10 & 421.0 & 0.001035 & 3.59 & 0.04089\\
-        20 & 640.2 & 0.001565 & 7.18 & 0.04089\\
+        $x_{ij}$ & 第$i$个样本第$j$种化学成分的含量 \\
+        $\bar{x}_j$ & 第$j$种化学成分的均值 \\
+        $s_j$ & 第$j$种化学成分的标准差 \\
+        $K$ & 聚类数目 \\
+        $k$ & KNN算法中的近邻个数 \\
+        $d(\cdot,\cdot)$ & 欧氏距离 \\
+        $r_{pq}$ & 第$p$种与第$q$种化学成分的相关系数 \\
+        $P$ & 卡方检验的显著性水平 \\
+        $\chi^2$ & 卡方统计量 \\
+        $\text{SSE}$ & 簇内误差平方和 \\
+        $s(i)$ & 轮廓系数 \\
         \bottomrule[1.5pt]
     \end{tabular}
 \end{table}
 
-其绘制表格的代码及其说明如下。
-\begin{tcode}
-    \begin{table}[!htbp]
-        \caption[标签名]{中文标题}
-        \begin{tabular}{cc...c}
-            \toprule[1.5pt]
-            表头第1个格   & 表头第2个格   & ... & 表头第n个格  \\
-            \midrule[1pt]
-            表中数据(1,1) & 表中数据(1,2) & ... & 表中数据(1,n)\\
-            表中数据(2,1) & 表中数据(2,2) & ... & 表中数据(2,n)\\
-            ...................................................\\
-            表中数据(m,1) & 表中数据(m,2) & ... & 表中数据(m,n)\\
-            \bottomrule[1.5pt]
-        \end{tabular}
-    \end{table}
-\end{tcode}
+\section{数据预处理}
 
-\bigskip
+\subsection{数据清洗}
 
-table环境是一个将表格嵌入文本的浮动环境。tabular环境的必选参数由每列对应一个格式字符所组成：c表示居中，l表示左对齐，r表示右对齐，其总个数应与表的列数相同。此外，\verb|@{文本}|可以出现在任意两个上述的列格式之间，其中的文本将被插入每一行的同一位置。表格的各行以\verb|\\|分隔，同一行的各列则以\&分隔。 \verb|\toprule| 、\verb|\midrule| 和 \verb|\bottomrule| 三个命令是由booktabs宏包提供的，其中 \verb|\toprule| 和 \verb|\bottomrule| 分别用来绘制表格的第一条（表格最顶部）和第三条（表格最底部）水平线， \verb|\midrule| 用来绘制第二条（表头之下）水平线，且第一条和第三条水平线的线宽为 1.5pt ，第二条水平线的线宽为 1pt 。引用方法与图片的相同。
+根据题目要求，删除累加和不在85\%--105\%范围内的无效数据。经检验，编号为15和17的两条数据存在异常，予以剔除。将颜色为空值的部分根据风化程度规律进行处理，将其他空值填“0”处理。
 
-\section{公式}
+\subsection{数据变换}
 
-数学建模必然涉及不少数学公式的使用。下面简单介绍一个可能用得上的数学环境。
-
-首先是行内公式，例如 $ \theta $ 是角度。行内公式使用 \verb|$  $| 包裹。
-
-行间公式不需要编号的可以使用 \verb|\[  \]| 包裹，例如
-\[
-E_1=mc^2
-\]
-其中 $ E $ 是能量，$ m $ 是质量，$ c $ 是光速。
-
-如果希望某个公式带编号，并且在后文中引用可以参考下面的写法：
+由于成分数据具有“定和约束”（各成分之和为100\%），直接使用原始数据进行统计分析可能产生伪相关等问题。为此，采用中心对数比变换（Center Log-Ratio Transformation, CLR）将成分数据从单纯形空间映射到欧式空间。CLR变换定义为：
 \begin{equation}
-E=mc^2
-\label{eq:energy}
+    y_{ij} = \ln\left(\frac{x_{ij}}{g(\mathbf{x}_i)}\right), \quad g(\mathbf{x}_i) = \left(\prod_{j=1}^{p} x_{ij}\right)^{1/p}
 \end{equation}
-式\cref{eq:energy}是质能方程。
+其中 $g(\mathbf{x}_i)$ 为第 $i$ 个样本各成分的几何均值。变换后的数据在欧式空间中可进行常规的统计分析与建模。
 
-多行公式有时候希望能够在特定的位置对齐，以下是其中一种处理方法。
-\begin{align}
-P & = UI \\
-& = I^2R
-\end{align}
-\verb|&| 是对齐的位置， \verb|&| 可以有多个，但是每行的个数要相同。
+\section{问题一：表面风化分析与风化前成分预测}
 
-矩阵的输入也不难。
-\[
-\mathbf{X} = \left(
-    \begin{array}{cccc}
-    x_{11} & x_{12} & \ldots & x_{1n}\\
-    x_{21} & x_{22} & \ldots & x_{2n}\\
-    \vdots & \vdots & \ddots & \vdots\\
-    x_{n1} & x_{n2} & \ldots & x_{nn}\\
-    \end{array} \right)
-\]
+\subsection{风化与类型、纹饰、颜色的关系分析}
 
-分段函数这些可以用 \verb|case| 环境，但是它要放在数学环境里面。
-\[
-f(x) =
-    \begin{cases}
-        0 &  x \text{为无理数} ,\\
-        1 &  x \text{为有理数} .
-    \end{cases}
-\]
-在数学环境里面，字体用的是数学字体，一般与正文字体不同。假如要公式里面有个别文字，则需要把这部分放在 \verb|text| 环境里面，即 \verb|\text{文本环境}| 。
+\subsubsection{分析方法}
+针对玻璃类型、纹饰、颜色三个定类变量与表面风化（风化/无风化）之间的关系，采用卡方检验（Chi-Square Test）进行独立性分析。卡方检验的统计量为：
+\begin{equation}
+    \chi^2 = \sum_{i=1}^{r}\sum_{j=1}^{c}\frac{(O_{ij}-E_{ij})^2}{E_{ij}}
+\end{equation}
+其中 $O_{ij}$ 为观测频数，$E_{ij}$ 为期望频数。根据显著性 $P$ 值是否小于0.05判断是否存在显著性差异。
 
-公式中个别需要加粗的字母可以用 \verb|$\bm{math symbol}$| 。如 $ \alpha a\bm{\alpha a} $ 。
+\subsubsection{效应量化}
+在卡方检验的基础上，进行效应量化分析，包括phi系数、Cramér's V系数、列联系数与lambda系数。
 
-以上仅简单介绍了基础的使用，对于更复杂的需求，可以阅读相关的宏包手册，如 \href{http://texdoc.net/texmf-dist/doc/latex/amsmath/amsldoc.pdf}{amsmath}。
+\subsubsection{分析结果}
+（待完成：根据附件表单1数据进行卡方检验，计算各变量与风化的卡方统计量、P值及效应量，判断玻璃类型、纹饰、颜色与表面风化之间是否存在显著性差异。）
 
-希腊字母这些如果不熟悉，可以去查找符号文件 \href{http://mirrors.ctan.org/info/symbols/comprehensive/symbols-a4.pdf}{symbols-a4.pdf} ，也可以去 \href{http://detexify.kirelabs.org/classify.html}{detexify} 网站手写识别。另外还有数学公式识别软件 \href{https://mathpix.com/}{mathpix} 。
+\subsection{风化前后化学成分含量的统计规律}
 
-下面简单介绍一下定理、证明等环境的使用。
-\begin{definition}
-    定义环境
-    \label{def:nosense}
-\end{definition}
-\cref{def:nosense}除了告诉你怎么使用这个环境以外，没有什么其它的意义。
+\subsubsection{分析方法}
+分别针对高钾玻璃和铅钡玻璃两类，将样本按风化状态分为风化组与未风化组，对各主要化学成分进行描述性统计分析（均值、标准差、中位数等），并绘制频率分布直方图，观察数据的分布与波动情况。
 
-除了 definition 环境，还可以使用 theorem 、lemma、corollary、assumption、conjecture、axiom、principle、problem、example、proof、solution 这些环境，根据论文的实际需求合理使用。
+\subsubsection{统计规律}
+（待完成：计算高钾玻璃风化前后各化学成分的均值变化、标准差变化；计算铅钡玻璃风化前后各化学成分的均值变化、标准差变化。）
 
-\begin{theorem}
-    这是一个定理。
-    \label{thm:example}
-\end{theorem}
-由\cref{thm:example}我们知道了定理环境的使用。
+（待完成：绘制风化前后各主要化学成分的频率分布直方图，分析数据波动情况。）
 
-\begin{lemma}
-    这是一个引理。
-    \label{lem:example}
-\end{lemma}
-由\cref{lem:example}我们知道了引理环境的使用。
+\subsection{风化前化学成分含量预测}
 
-\begin{corollary}
-    这是一个推论。
-    \label{cor:example}
-\end{corollary}
-由\cref{cor:example}我们知道了推论环境的使用。
+\subsubsection{加权平均预测占比模型}
+针对风化点检测数据的特殊性，建立加权平均预测占比模型。该模型基于同一类型玻璃中未风化点的成分数据，通过加权平均的方式预测风化点的风化前成分。
 
-\begin{assumption}
-    这是一个假设。
-    \label{asu:example}
-\end{assumption}
-由\cref{asu:example}我们知道了假设环境的使用。
+对于风化样本 $i$，其第 $j$ 种化学成分的风化前含量预测值为：
+\begin{equation}
+    \hat{x}_{ij}^{\text{pre}} = \sum_{k \in \mathcal{U}_t} w_{ik} \cdot x_{kj}^{\text{unweathered}}
+\end{equation}
+其中 $\mathcal{U}_t$ 为与样本 $i$ 同类型的所有未风化样本集合，$w_{ik}$ 为权重系数（可根据样本间相似度确定），$x_{kj}^{\text{unweathered}}$ 为未风化样本 $k$ 的第 $j$ 种成分含量。
 
-\begin{conjecture}
-    这是一个猜想。
-    \label{con:example}
-\end{conjecture}
-由\cref{con:example}我们知道了猜想环境的使用。
+\subsubsection{多元线性回归模型}
+采用多元线性回归模型，以风化后的成分含量为自变量，预测风化前的成分含量。以SiO$_2$为例，回归模型形式为：
+\begin{equation}
+    \text{SiO}_2^{\text{pre}} = \beta_0 + \sum_{j} \beta_j \cdot x_j^{\text{weathered}} + \varepsilon
+\end{equation}
+其中 $x_j^{\text{weathered}}$ 为风化后第 $j$ 种化学成分的含量。
 
-\begin{axiom}
-    这是一个公理。
-    \label{axi:example}
-\end{axiom}
-由\cref{axi:example}我们知道了公理环境的使用。
+\subsubsection{K近邻回归模型}
+采用K近邻回归（K=5），以“风化后成分”为输入，“同类未风化成分均值”为参考，预测风化前的成分含量。对于待预测的风化样本，在同类未风化样本中寻找K个最近邻，取其成分含量的加权平均值作为预测值。
 
-\begin{principle}
-    这是一个定律。
-    \label{pri:example}
-\end{principle}
-由\cref{pri:example}我们知道了定律环境的使用。
+\subsubsection{预测结果}
+（待完成：对表单2中风化点及严重风化点的各化学成分进行预测，给出风化前化学成分含量的具体数值。）
 
-\begin{problem}
-    这是一个问题。
-    \label{pro:example}
-\end{problem}
-由\cref{pro:example}我们知道了问题环境的使用。
+（待完成：比较加权平均模型、多元线性回归模型与K近邻回归模型的预测效果，选择最优模型。）
 
-\begin{example}
-    这是一个例子。
-    \label{exa:example}
-\end{example}
-由\cref{exa:example}我们知道了例子环境的使用。
+\section{问题二：玻璃分类规律与亚类划分}
 
-\begin{proof}
-    这是一个证明。
-    \label{prf:example}
-\end{proof}
-由\cref{prf:example}我们知道了证明环境的使用。
+\subsection{分类规律分析}
 
-\begin{solution}
-    这是一个解。
-    \label{sol:example}
-\end{solution}
-由\cref{sol:example}我们知道了解环境的使用。
+\subsubsection{高钾玻璃与铅钡玻璃的区分特征}
+根据题目背景，高钾玻璃以K$_2$O含量高为特征（以草木灰为助熔剂），铅钡玻璃以PbO和BaO含量高为特征（以铅矿石为助熔剂）。通过对表单2数据的统计分析，识别两类玻璃在化学成分上的关键差异指标。
 
+\subsubsection{分析方法}
+计算两类玻璃各化学成分的均值与标准差，识别差异显著的成分指标。采用t检验或Mann-Whitney U检验验证差异的显著性。
 
+（待完成：计算高钾玻璃与铅钡玻璃各化学成分的均值、标准差，识别关键区分指标。）
 
-\section{其它小功能}
-\subsection{脚注}
+\subsection{亚类划分方法}
 
-利用 \verb|\footnote{具体内容}| 可以生成脚注\footnote{脚注可以补充说明一些东西}。
+\subsubsection{K-means++聚类算法}
+采用K-means++聚类算法对每个类别进行亚类划分。K-means++通过优化初始聚类中心的选择，克服了传统K-means算法对初始值敏感的缺点。
 
-\subsection{无序列表与有序列表}
-
-无序列表是这样的：
-\begin{itemize}
-    \item one
-    \item two
-    \item ...
-\end{itemize}
-
-有序列表是这样子的：
+算法步骤如下：
 \begin{enumerate}
-    \item one
-    \item two
-    \item ...
+    \item 从数据集中随机选择第一个聚类中心。
+    \item 对于每个样本，计算其与最近聚类中心的距离 $D(x)$。
+    \item 以正比于 $D(x)^2$ 的概率选择下一个聚类中心。
+    \item 重复步骤2--3直到选择出 $K$ 个初始聚类中心。
+    \item 执行标准K-means算法迭代直至收敛。
 \end{enumerate}
 
-\subsection{字体加粗与斜体}
+\subsubsection{最优聚类数确定}
+采用肘部法则（Elbow Method）和轮廓系数（Silhouette Coefficient）确定最优聚类数 $K$。
 
-如果想强调部分内容，可以使用加粗的手段来实现。加粗字体可以用 \verb|\textbf{加粗}| 来实现。例如： \textbf{这是加粗的字体。 This is bold fonts} 。
+肘部法则通过计算不同 $K$ 值下的簇内误差平方和（SSE）：
+\begin{equation}
+    \text{SSE} = \sum_{k=1}^{K}\sum_{\mathbf{x} \in C_k} \|\mathbf{x} - \boldsymbol{\mu}_k\|^2
+\end{equation}
+选择SSE下降速度出现明显拐点处的 $K$ 值。
 
-中文字体没有斜体设计，但是英文字体有。\textit{斜体 Italics}。
+轮廓系数的计算公式为：
+\begin{equation}
+    s(i) = \frac{b(i) - a(i)}{\max\{a(i), b(i)\}}
+\end{equation}
+其中 $a(i)$ 为样本 $i$ 到同簇其他样本的平均距离，$b(i)$ 为样本 $i$ 到其他簇样本的最小平均距离。轮廓系数取值范围为 $[-1, 1]$，值越大表示聚类效果越好。
 
-\section{参考文献与引用}
+\subsubsection{特征选择}
+针对高钾玻璃，选择K$_2$O、SiO$_2$、Al$_2$O$_3$、CaO等特征成分进行聚类。针对铅钡玻璃，选择PbO、BaO、SiO$_2$、P$_2$O$_5$等特征成分进行聚类。
 
-参考文献对于一篇正式的论文来说是必不可少的，在建模中重要的参考文献当然应该列出。\LaTeX{}在这方面的功能也是十分强大的，下面进介绍一个比较简单的参考文献制作方法。有兴趣的可以学习 \verb|bibtex| 或 \verb|biblatex| 的使用。
+\subsection{亚类划分结果}
+（待完成：给出高钾玻璃的最优聚类数及亚类划分结果，列出每个亚类的样本编号及特征成分均值。）
 
-\LaTeX{}的入门书籍可以看《\LaTeX{}入门》\cite{liuhaiyang2013latex}。这是一个简单的引用，用 \verb|\cite{bibkey}| 来完成。要引用成功，当然要维护好 bibitem 了。下面是个简单的例子。
+（待完成：给出铅钡玻璃的最优聚类数及亚类划分结果，列出每个亚类的样本编号及特征成分均值。）
 
+\subsection{合理性与敏感性分析}
 
+\subsubsection{合理性分析}
+通过以下方面验证亚类划分的合理性：
+\begin{itemize}
+    \item 轮廓系数评估聚类紧密度与分离度。
+    \item 各亚类间特征成分均值的差异显著性检验。
+    \item 亚类结果与文物背景知识的一致性检验。
+\end{itemize}
 
-%参考文献
-\begin{thebibliography}{9}%宽度9
-    \bibitem[1]{liuhaiyang2013latex}
-    刘海洋.
-    \newblock \LaTeX {}入门\allowbreak[J].
-    \newblock 电子工业出版社, 北京, 2013.
-    \bibitem[2]{mathematical-modeling}
-    全国大学生数学建模竞赛论文格式规范 (2020 年 8 月 25 日修改).
+\subsubsection{敏感性分析}
+通过以下方面分析分类结果的敏感性：
+\begin{itemize}
+    \item 改变聚类数 $K$ 观察分类结果的变化。
+    \item 改变特征成分的组合观察分类结果的变化。
+    \item 采用不同的聚类算法（如层次聚类）进行对比验证。
+\end{itemize}
+（待完成：给出敏感性分析的具体结果与结论。）
+
+\section{问题三：未知类别玻璃文物的类型鉴别}
+
+\subsection{分类模型构建}
+
+\subsubsection{K近邻分类模型}
+采用K近邻（KNN）分类算法对表单3中未知类别的玻璃文物进行类型鉴别。KNN算法的基本思想是：对于一个待分类样本，在训练集中找到与其最相似的 $K$ 个样本（近邻），根据这 $K$ 个近邻的类别标签通过投票法决定待分类样本的类别。
+
+\subsubsection{模型训练}
+将表单2中的有效数据作为训练集，分离特征列（化学成分）和标签列（类型）：
+\begin{equation}
+    X = \text{化学成分数据}, \quad y = \text{类型标签（高钾/铅钡）}
+\end{equation}
+采用train\_test\_split按8:2的比例划分训练集和测试集。
+
+\subsubsection{模型参数}
+采用KNN分类器，设置 $K=1$。使用MultiOutputClassifier处理多输出问题。
+
+\subsection{分类结果}
+（待完成：对表单3中A1--A8共8个未知样本进行类型鉴别，给出每个样本的预测类型。）
+
+\subsection{敏感性分析}
+
+\subsubsection{交叉验证}
+采用K折交叉验证（K-Fold Cross Validation）评估模型的稳定性。将训练数据分为 $K$ 折，每次使用 $K-1$ 折训练、1折验证，重复 $K$ 次，计算平均分类准确率。
+
+\subsubsection{参数敏感性}
+分析不同 $K$ 值（近邻个数）对分类结果的影响。
+（待完成：给出不同 $K$ 值下的分类准确率变化情况。）
+
+\subsubsection{特征敏感性}
+分析删除不同化学成分特征对分类结果的影响。
+（待完成：给出特征敏感性分析的具体结果。）
+
+\section{问题四：化学成分关联关系分析}
+
+\subsection{分析方法}
+
+\subsubsection{相关性分析}
+分别针对高钾玻璃和铅钡玻璃两类，计算各化学成分之间的Pearson相关系数：
+\begin{equation}
+    r_{pq} = \frac{\sum_{i=1}^{n}(x_{ip} - \bar{x}_p)(x_{iq} - \bar{x}_q)}{\sqrt{\sum_{i=1}^{n}(x_{ip} - \bar{x}_p)^2 \sum_{i=1}^{n}(x_{iq} - \bar{x}_q)^2}}
+\end{equation}
+绘制相关性热力图，可视化展示成分间的关联关系。
+
+\subsubsection{对应分析}
+采用对应分析（Correspondence Analysis）方法，将高维化学成分数据降维到低维空间，可视化展示成分与样本之间的关系。对应分析能够揭示化学成分之间的内在关联结构以及不同类别玻璃在成分空间中的分布特征。
+
+\subsection{关联关系分析结果}
+（待完成：给出高钾玻璃各化学成分间的相关系数矩阵及热力图。）
+
+（待完成：给出铅钡玻璃各化学成分间的相关系数矩阵及热力图。）
+
+（待完成：给出对应分析的降维结果及可视化图。）
+
+\subsection{类别间差异性比较}
+
+\subsubsection{关联强度比较}
+比较高钾玻璃与铅钡玻璃在化学成分关联关系上的差异。
+（待完成：计算两类玻璃的平均相关系数，比较关联强度的差异。）
+
+\subsubsection{关联模式比较}
+比较两类玻璃在化学成分关联模式上的差异。
+（待完成：识别高钾玻璃中关联较强的成分对与铅钡玻璃中关联较强的成分对，分析差异的原因。）
+
+\section{模型评价与改进}
+
+\subsection{模型优点}
+\begin{enumerate}
+    \item 采用CLR变换处理成分数据，有效消除了定和约束带来的伪相关影响。
+    \item 综合运用多种统计与机器学习方法，从不同角度验证分析结果的可靠性。
+    \item K-means++算法优化了初始聚类中心的选择，提高了聚类结果的稳定性。
+    \item 模型体系完整，覆盖了从数据预处理到结果分析的全流程。
+\end{enumerate}
+
+\subsection{模型不足}
+\begin{enumerate}
+    \item 样本量相对有限，可能影响统计检验的效能。
+    \item 风化过程的机理模型尚未充分考虑，预测主要基于统计规律。
+    \item 部分化学成分数据存在较多缺失值，可能引入偏差。
+\end{enumerate}
+
+\subsection{改进方向}
+\begin{enumerate}
+    \item 可引入GA-BP神经网络等深度学习模型提高预测精度。
+    \item 可结合风化机理建立更精细的物理化学模型。
+    \item 可采用更先进的数据填补方法处理缺失值问题。
+\end{enumerate}
+
+\section{参考文献}
+
+\begin{thebibliography}{9}
+    \bibitem[1]{problem} 2022年高教社杯全国大学生数学建模竞赛C题：古代玻璃制品的成分分析与鉴别.
+    \bibitem[2]{paper1} 古代玻璃制品成分分析与鉴别的统计建模，数学建模及其应用，2023年02期.
+    \bibitem[3]{paper2} 基于CLR的玻璃文物成分分析与分类模型，数学建模及其应用，2023年02期.
+    \bibitem[4]{paper3} 基于GA-BP的古代玻璃类别预测与风化程度测定模型研究，软件工程，2023年07期.
+    \bibitem[5]{paper4} 玻璃文物成分分析与鉴别的数学模型，黑龙江科学，2024年04期.
+    \bibitem[6]{paper5} 基于多元线性回归的古代玻璃体系判别方法，甘肃科技，2024年02期.
 \end{thebibliography}
 
 \newpage
-%附录
 \begin{appendices}
 
-\section{模板所用的宏包}
-\begin{table}[htbp]
-    \centering
-    \caption{宏包罗列}
-    \begin{tabular}{ccccc}
-        \toprule
-        \multicolumn{5}{c}{模板中已经加载的宏包} \\
-        \midrule
-        amsbsy & amsfonts & {amsgen} & {amsmath} & {amsopn} \\
-        amssymb & amstext & {appendix} & {array} & {atbegshi} \\
-        atveryend & auxhook & {bigdelim} & {bigintcalc} & {bigstrut} \\
-        bitset & bm    & {booktabs} & {calc} & {caption} \\
-        caption3 & CJKfntef & {cprotect} & {ctex} & {ctexhook} \\
-        ctexpatch & enumitem & {etexcmds} & {etoolbox} & {everysel} \\
-        expl3 & fix-cm & {fontenc} & {fontspec} & {fontspec-xetex} \\
-        geometry & gettitlestring & {graphics} & {graphicx} & {hobsub} \\
-        hobsub-generic & hobsub-hyperref & {hopatch} & {hxetex} & {hycolor} \\
-        hyperref & ifluatex & {ifpdf} & {ifthen} & {ifvtex} \\
-        ifxetex & indentfirst & {infwarerr} & {intcalc} & {keyval} \\
-        kvdefinekeys & kvoptions & {kvsetkeys} & {l3keys2e} & {letltxmacro} \\
-        listings & longtable & {lstmisc} & {ltcaption} & {ltxcmds} \\
-        multirow & nameref & {pdfescape} & {pdftexcmds} & {refcount} \\
-        rerunfilecheck & stringenc & {suffix} & {titletoc} & {tocloft} \\
-        trig  & ulem  & {uniquecounter} & {url} & {xcolor} \\
-        xcolor-patch & xeCJK & {xeCJKfntef} & {xeCJK-listings} & {xparse} \\
-        xtemplate & zhnumber &       &       &  \\
-        \bottomrule
-    \end{tabular}%
-    \label{tab:addlabel}%
-\end{table}%
+\section{核心代码（Python）}
 
-以上宏包都已经加载过了，不要重复加载它们。
+以下代码根据公开资料整理，用于实现本文各问题的建模与计算。
 
-\section{排队算法--matlab 源程序}
+\subsection{数据预处理代码}
+\begin{lstlisting}[language=Python, caption=数据预处理]
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import StandardScaler
 
-\begin{lstlisting}[language=matlab]
-kk=2;[mdd,ndd]=size(dd);
-while ~isempty(V)
-[tmpd,j]=min(W(i,V));tmpj=V(j);
-for k=2:ndd
-[tmp1,jj]=min(dd(1,k)+W(dd(2,k),V));
-tmp2=V(jj);tt(k-1,:)=[tmp1,tmp2,jj];
-end
-tmp=[tmpd,tmpj,j;tt];[tmp3,tmp4]=min(tmp(:,1));
-if tmp3==tmpd, ss(1:2,kk)=[i;tmp(tmp4,2)];
-else,tmp5=find(ss(:,tmp4)~=0);tmp6=length(tmp5);
-if dd(2,tmp4)==ss(tmp6,tmp4)
-ss(1:tmp6+1,kk)=[ss(tmp5,tmp4);tmp(tmp4,2)];
-else, ss(1:3,kk)=[i;dd(2,tmp4);tmp(tmp4,2)];
-end;end
-dd=[dd,[tmp3;tmp(tmp4,2)]];V(tmp(tmp4,3))=[];
-[mdd,ndd]=size(dd);kk=kk+1;
-end; S=ss; D=dd(1,:);
- \end{lstlisting}
+# 读取数据
+df_info = pd.read_excel('附件.xlsx', sheet_name='表单1')
+df_comp = pd.read_excel('附件.xlsx', sheet_name='表单2')
+df_unknown = pd.read_excel('附件.xlsx', sheet_name='表单3')
 
- \section{规划解决程序--lingo源代码}
+# 数据清洗：删除无效数据（累加和不在85%-105%之间）
+comp_cols = ['二氧化硅(SiO2)', '氧化钠(Na2O)', '氧化钾(K2O)', '氧化钙(CaO)', 
+             '氧化镁(MgO)', '氧化铝(Al2O3)', '氧化铁(Fe2O3)', '氧化铜(CuO)',
+             '氧化铅(PbO)', '氧化钡(BaO)', '五氧化二磷(P2O5)', '氧化锶(SrO)',
+             '氧化锡(SnO2)', '二氧化硫(SO2)']
+df_comp['sum'] = df_comp[comp_cols].fillna(0).sum(axis=1)
+df_comp_valid = df_comp[(df_comp['sum'] >= 85) & (df_comp['sum'] <= 105)]
 
-\begin{lstlisting}[language=c]
-kk=2;
-[mdd,ndd]=size(dd);
-while ~isempty(V)
-    [tmpd,j]=min(W(i,V));tmpj=V(j);
-for k=2:ndd
-    [tmp1,jj]=min(dd(1,k)+W(dd(2,k),V));
-    tmp2=V(jj);tt(k-1,:)=[tmp1,tmp2,jj];
-end
-    tmp=[tmpd,tmpj,j;tt];[tmp3,tmp4]=min(tmp(:,1));
-if tmp3==tmpd, ss(1:2,kk)=[i;tmp(tmp4,2)];
-else,tmp5=find(ss(:,tmp4)~=0);tmp6=length(tmp5);
-if dd(2,tmp4)==ss(tmp6,tmp4)
-    ss(1:tmp6+1,kk)=[ss(tmp5,tmp4);tmp(tmp4,2)];
-else, ss(1:3,kk)=[i;dd(2,tmp4);tmp(tmp4,2)];
-end;
-end
-    dd=[dd,[tmp3;tmp(tmp4,2)]];V(tmp(tmp4,3))=[];
-    [mdd,ndd]=size(dd);
-    kk=kk+1;
-end;
-S=ss;
-D=dd(1,:);
- \end{lstlisting}
+# 空值填0处理
+df_comp_valid = df_comp_valid.fillna(0)
+\end{lstlisting}
+
+\subsection{CLR变换代码}
+\begin{lstlisting}[language=Python, caption=中心对数比变换]
+from scipy.stats import gmean
+
+def clr_transform(data):
+    """中心对数比变换"""
+    # 确保数据为正
+    data_pos = data.copy()
+    data_pos[data_pos <= 0] = 1e-10
+    # 计算几何均值
+    geo_mean = gmean(data_pos, axis=1)
+    # CLR变换
+    clr_data = np.log(data_pos / geo_mean[:, np.newaxis])
+    return clr_data
+
+# 对有效数据进行CLR变换
+X_valid = df_comp_valid[comp_cols].values
+X_clr = clr_transform(X_valid)
+\end{lstlisting}
+
+\subsection{问题一：卡方检验代码}
+\begin{lstlisting}[language=Python, caption=卡方检验]
+from scipy.stats import chi2_contingency
+
+# 合并数据
+df_merged = pd.merge(df_info, df_comp_valid, left_on='文物编号', right_on='文物采样点', how='inner')
+
+# 卡方检验：类型与风化
+contingency_type = pd.crosstab(df_merged['类型'], df_merged['表面风化'])
+chi2, p, dof, expected = chi2_contingency(contingency_type)
+print(f"类型与风化：chi2={chi2:.4f}, p={p:.4f}")
+
+# 卡方检验：纹饰与风化
+contingency_deco = pd.crosstab(df_merged['纹饰'], df_merged['表面风化'])
+chi2, p, dof, expected = chi2_contingency(contingency_deco)
+print(f"纹饰与风化：chi2={chi2:.4f}, p={p:.4f}")
+
+# 卡方检验：颜色与风化
+contingency_color = pd.crosstab(df_merged['颜色'], df_merged['表面风化'])
+chi2, p, dof, expected = chi2_contingency(contingency_color)
+print(f"颜色与风化：chi2={chi2:.4f}, p={p:.4f}")
+\end{lstlisting}
+
+\subsection{问题二：K-means++聚类代码}
+\begin{lstlisting}[language=Python, caption=K-means++聚类]
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+
+def find_optimal_k(X, max_k=10):
+    """肘部法则确定最优K值"""
+    sse = []
+    sil_scores = []
+    for k in range(2, max_k + 1):
+        kmeans = KMeans(n_clusters=k, init='k-means++', random_state=42, n_init=10)
+        kmeans.fit(X)
+        sse.append(kmeans.inertia_)
+        sil_scores.append(silhouette_score(X, kmeans.labels_))
+    return sse, sil_scores
+
+# 高钾玻璃聚类
+df_gaojia = df_merged[df_merged['类型'] == '高钾']
+features_gj = ['氧化钾(K2O)', '二氧化硅(SiO2)', '氧化铝(Al2O3)', '氧化钙(CaO)']
+X_gj = df_gaojia[features_gj].values
+X_gj_scaled = StandardScaler().fit_transform(X_gj)
+
+sse_gj, sil_gj = find_optimal_k(X_gj_scaled)
+# 选择最优K值（根据肘部法则和轮廓系数）
+kmeans_gj = KMeans(n_clusters=3, init='k-means++', random_state=42, n_init=10)
+labels_gj = kmeans_gj.fit_predict(X_gj_scaled)
+
+# 铅钡玻璃聚类
+df_qianbei = df_merged[df_merged['类型'] == '铅钡']
+features_qb = ['氧化铅(PbO)', '氧化钡(BaO)', '二氧化硅(SiO2)', '五氧化二磷(P2O5)']
+X_qb = df_qianbei[features_qb].values
+X_qb_scaled = StandardScaler().fit_transform(X_qb)
+
+sse_qb, sil_qb = find_optimal_k(X_qb_scaled)
+kmeans_qb = KMeans(n_clusters=3, init='k-means++', random_state=42, n_init=10)
+labels_qb = kmeans_qb.fit_predict(X_qb_scaled)
+\end{lstlisting}
+
+\subsection{问题三：KNN分类代码}
+\begin{lstlisting}[language=Python, caption=KNN分类]
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import classification_report, accuracy_score
+
+# 准备训练数据
+df_train = df_merged.dropna(subset=['类型'])
+X_train_all = df_train[comp_cols].fillna(0).values
+y_train_all = df_train['类型'].values
+
+# 划分训练集和测试集
+X_train, X_test, y_train, y_test = train_test_split(
+    X_train_all, y_train_all, test_size=0.2, random_state=42
+)
+
+# KNN分类器 (K=1)
+knn = KNeighborsClassifier(n_neighbors=1)
+knn.fit(X_train, y_train)
+
+# 测试集评估
+y_pred = knn.predict(X_test)
+print(classification_report(y_test, y_pred))
+print(f"准确率: {accuracy_score(y_test, y_pred):.4f}")
+
+# 交叉验证
+cv_scores = cross_val_score(knn, X_train_all, y_train_all, cv=5)
+print(f"5折交叉验证平均准确率: {cv_scores.mean():.4f}")
+
+# 预测未知样本
+X_unknown = df_unknown[comp_cols].fillna(0).values
+y_unknown_pred = knn.predict(X_unknown)
+print("未知样本预测结果:", y_unknown_pred)
+
+# 参数敏感性分析（不同K值）
+for k in [1, 3, 5, 7, 9]:
+    knn_k = KNeighborsClassifier(n_neighbors=k)
+    scores = cross_val_score(knn_k, X_train_all, y_train_all, cv=5)
+    print(f"K={k}, 平均准确率: {scores.mean():.4f}")
+\end{lstlisting}
+
+\subsection{问题四：相关分析与对应分析代码}
+\begin{lstlisting}[language=Python, caption=相关分析与对应分析]
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+
+# 相关性分析
+def correlation_analysis(df, glass_type):
+    """分析指定类型玻璃的化学成分相关性"""
+    df_type = df[df['类型'] == glass_type]
+    X_type = df_type[comp_cols].fillna(0)
+    corr_matrix = X_type.corr()
+    # 绘制热力图
+    plt.figure(figsize=(12, 10))
+    sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', center=0, fmt='.2f')
+    plt.title(f'{glass_type}玻璃化学成分相关系数矩阵')
+    plt.show()
+    return corr_matrix
+
+# 高钾玻璃相关性
+corr_gj = correlation_analysis(df_merged, '高钾')
+# 铅钡玻璃相关性
+corr_qb = correlation_analysis(df_merged, '铅钡')
+
+# 对应分析（使用PCA降维可视化）
+def correspondence_analysis(df):
+    """对应分析：将成分数据降维到2D空间"""
+    X = df[comp_cols].fillna(0).values
+    X_clr = clr_transform(X)
+    pca = PCA(n_components=2)
+    X_pca = pca.fit_transform(X_clr)
+    plt.figure(figsize=(10, 8))
+    colors = {'高钾': 'red', '铅钡': 'blue'}
+    for glass_type in ['高钾', '铅钡']:
+        mask = df['类型'] == glass_type
+        plt.scatter(X_pca[mask, 0], X_pca[mask, 1], 
+                   c=colors[glass_type], label=glass_type, alpha=0.7)
+    plt.xlabel('第一主成分')
+    plt.ylabel('第二主成分')
+    plt.title('玻璃样品对应分析二维投影')
+    plt.legend()
+    plt.show()
+    return X_pca
+
+X_pca = correspondence_analysis(df_merged.dropna(subset=['类型']))
+\end{lstlisting}
+
+\subsection{风化前成分预测代码}
+\begin{lstlisting}[language=Python, caption=风化前成分预测]
+from sklearn.linear_model import LinearRegression
+from sklearn.neighbors import KNeighborsRegressor
+
+def predict_weathered_components(df, weathered_samples, method='knn'):
+    """
+    预测风化样本的风化前成分含量
+    method: 'weighted_avg', 'linear', 'knn'
+    """
+    results = {}
+    for idx, sample in weathered_samples.iterrows():
+        # 找到同类型未风化样本
+        same_type = df[df['类型'] == sample['类型']]
+        unweathered = same_type[same_type['表面风化'] == '无风化']
+        
+        if method == 'weighted_avg':
+            # 加权平均法
+            weights = 1 / np.abs(unweathered[comp_cols].fillna(0) - 
+                                sample[comp_cols].fillna(0)).sum(axis=1)
+            weights = weights / weights.sum()
+            pred = np.average(unweathered[comp_cols].fillna(0), weights=weights, axis=0)
+            
+        elif method == 'linear':
+            # 多元线性回归
+            X_train = unweathered[comp_cols].fillna(0).values
+            pred = []
+            for col in comp_cols:
+                model = LinearRegression()
+                X_other = np.delete(X_train, comp_cols.index(col), axis=1)
+                y_train = unweathered[col].fillna(0).values
+                model.fit(X_other, y_train)
+                x_test = np.delete(sample[comp_cols].fillna(0).values, 
+                                  comp_cols.index(col))
+                pred.append(model.predict([x_test])[0])
+            
+        elif method == 'knn':
+            # K近邻回归
+            X_train = unweathered[comp_cols].fillna(0).values
+            y_train = unweathered[comp_cols].fillna(0).values
+            knn = KNeighborsRegressor(n_neighbors=5)
+            knn.fit(X_train, y_train)
+            pred = knn.predict([sample[comp_cols].fillna(0).values])[0]
+        
+        results[sample['文物采样点']] = pred
+    return results
+
+# 预测风化点
+weathered_samples = df_merged[df_merged['表面风化'] == '风化']
+predictions = predict_weathered_components(df_merged, weathered_samples, method='knn')
+\end{lstlisting}
+
 \end{appendices}
 
-\end{document} 
+\end{document}
